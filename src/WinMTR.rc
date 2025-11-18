@@ -113,7 +113,7 @@ BEGIN
     CONTROL         "Resolve names",IDC_CHECK_DNS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,167,119,63,8
     GROUPBOX        "",IDC_STATIC,7,7,237,82,BS_FLAT
     CTEXT           "",IDC_STATIC,31,35,201,17
-    CTEXT           "WinMTR Graph v1.1 is offered under GPLv2",IDC_STATIC,42,14,194,17
+    CTEXT           "WinMTR Graph v1.1.0 is offered under GPLv2",IDC_STATIC,42,14,194,17
     PUSHBUTTON      "&License and Credits",ID_LICENSE,81,67,94,14,BS_FLAT
     LTEXT           "Max. hosts in LRU list:",IDC_STATIC,15,119,74,10,NOT WS_GROUP
     EDITTEXT        IDC_EDIT_MAX_LRU,90,116,34,13,ES_AUTOHSCROLL
@@ -169,7 +169,7 @@ FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
     DEFPUSHBUTTON   "OK",IDOK,144,101,50,14
     LTEXT           "bananaco.de",IDC_STATIC,187,9,60,11
-    LTEXT           "WinMTR Graph v1.1 is offered under GPLv2",IDC_STATIC,7,9,176,10
+    LTEXT           "WinMTR Graph v1.1.0 is offered under GPLv2",IDC_STATIC,7,9,176,10
     LTEXT           "Usage: WinMTR [options] target_host_name",IDC_STATIC,7,29,144,8
     LTEXT           "Options:",IDC_STATIC,7,39,28,8
     LTEXT           "     --interval, -i VALUE. Set ping interval.",IDC_STATIC,26,47,131,8
@@ -202,7 +202,7 @@ BEGIN
     BEGIN
         BLOCK "040904b0"
         BEGIN
-            VALUE "FileDescription", "WinMTR Graph v1.1 GPLv2"
+            VALUE "FileDescription", "WinMTR Graph v1.1.0 GPLv2"
             VALUE "FileVersion", "1.1"
             VALUE "InternalName", "WinMTR"
             VALUE "LegalCopyright", "WinMTR - appnor"
@@ -284,7 +284,7 @@ END
 STRINGTABLE
 BEGIN
     IDP_SOCKETS_INIT_FAILED "Windows sockets initialization failed."
-    IDS_STRING_SB_NAME      "WinMTR Graph v1.1 GPLv2"
+    IDS_STRING_SB_NAME      "WinMTR Graph v1.1.0 GPLv2"
     IDS_STRING_SB_PING      "0000000"
     IDS_STRING_CLEAR_HISTORY "Clear History"
     1234 "bananaco.de"
