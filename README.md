@@ -1,8 +1,8 @@
 WinMTR Graph
 ==============
-**WinMTR Graph** is a fork of [WinMTR (Redux)](https://github.com/White-Tiger/WinMTR) which itself is a fork of [Appnor's WinMTR](http://winmtr.net/) ([sourceforge](http://sourceforge.net/projects/winmtr/)).
-It adds graph visualization to WinMTR.
-[graph.png]
+**WinMTR Graph** is a fork of [WinMTR (Redux)](https://github.com/White-Tiger/WinMTR) which itself is a fork of [Appnor's WinMTR](http://winmtr.net/) ([sourceforge](http://sourceforge.net/projects/winmtr/)). <br>
+It adds graph visualization to WinMTR. <br>
+![facebook.com](graph.png "Example Graph")
 
 ### Download (binaries)
 * [**view all available**](https://github.com/codename-B/WinMTRGraph/releases)
