@@ -2,6 +2,7 @@
 *.slo
 *.lo
 *.o
+*.aps
 
 # Compiled Dynamic libraries
 *.so
@@ -11,3 +12,14 @@
 *.lai
 *.la
 *.a
+.*/*
+
+# Output folder(s)
+/Debug_x64
+/Debug
+/Release
+/Release_x32
+/Release_x64
+
+# User config
+WinMTRGraph.vcxproj.user

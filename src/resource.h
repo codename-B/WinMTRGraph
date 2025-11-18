@@ -40,6 +40,12 @@
 #define IDC_COMBO_HOST                  1024
 #define IDC_EDIT_MAX_LRU                1025
 #define IDC_CHECK_IPV6                  1026
+#define IDC_GRAPH                       1027
+#define ID_COPY_GRAPH                   1028
+#define IDC_COMBO_TIMESPAN              1029
+#define ID_EXPORT_GRAPH                 1030
+#define IDC_STATICG            1031
+#define IDC_STATICI      1032
 
 // Next default values for new objects
 // 
@@ -47,7 +53,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        135
 #define _APS_NEXT_COMMAND_VALUE         32771
-#define _APS_NEXT_CONTROL_VALUE         1027
+#define _APS_NEXT_CONTROL_VALUE         1030
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
