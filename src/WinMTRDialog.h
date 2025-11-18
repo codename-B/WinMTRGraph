@@ -17,6 +17,7 @@
 
 #include "WinMTRStatusBar.h"
 #include "WinMTRNet.h"
+#include "WinMTRGraph.h"
 #include "afxlinkctrl.h"
 
 //*****************************************************************************
@@ -66,10 +67,17 @@ public:
 	
 	CStatic	m_staticS;
 	CStatic	m_staticJ;
+	CStatic m_staticGraphBox;
+	CStatic m_staticGraphBoxRight;
 	
 	CButton	m_buttonExpT;
 	CButton	m_buttonExpH;
-	
+	CButton	m_buttonCopyGraph;
+	CButton	m_buttonExportGraph;
+	CComboBox m_comboTimeSpan;
+
+	WinMTRGraph m_graph;  // Real-time RTT graph
+
 	int InitMTRNet();
 	
 	int DisplayRedraw();
@@ -118,9 +126,13 @@ protected:
 	afx_msg void OnCHTC();
 	afx_msg void OnEXPT();
 	afx_msg void OnEXPH();
-	
+	afx_msg void OnCopyGraph();
+	afx_msg void OnExportGraph();
+	afx_msg void OnTimeSpanChange();
+
 	afx_msg void OnDblclkList(NMHDR* pNMHDR, LRESULT* pResult);
-	
+	afx_msg void OnClickList(NMHDR* pNMHDR, LRESULT* pResult);
+
 	DECLARE_MESSAGE_MAP()
 public:
 	afx_msg void OnCbnSelchangeComboHost();

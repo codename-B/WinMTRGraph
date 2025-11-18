@@ -44,7 +44,11 @@ BEGIN_MESSAGE_MAP(WinMTRDialog, CDialog)
 	ON_BN_CLICKED(ID_CHTC, OnCHTC)
 	ON_BN_CLICKED(ID_EXPT, OnEXPT)
 	ON_BN_CLICKED(ID_EXPH, OnEXPH)
+	ON_BN_CLICKED(ID_COPY_GRAPH, OnCopyGraph)
+	ON_BN_CLICKED(ID_EXPORT_GRAPH, OnExportGraph)
+	ON_CBN_SELCHANGE(IDC_COMBO_TIMESPAN, OnTimeSpanChange)
 	ON_NOTIFY(NM_DBLCLK, IDC_LIST_MTR, OnDblclkList)
+	ON_NOTIFY(NM_CLICK, IDC_LIST_MTR, OnClickList)
 	ON_CBN_SELCHANGE(IDC_COMBO_HOST, &WinMTRDialog::OnCbnSelchangeComboHost)
 	ON_CBN_SELENDOK(IDC_COMBO_HOST, &WinMTRDialog::OnCbnSelendokComboHost)
 	ON_CBN_CLOSEUP(IDC_COMBO_HOST, &WinMTRDialog::OnCbnCloseupComboHost)
@@ -106,8 +110,13 @@ void WinMTRDialog::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_LIST_MTR, m_listMTR);
 	DDX_Control(pDX, IDC_STATICS, m_staticS);
 	DDX_Control(pDX, IDC_STATICJ, m_staticJ);
+	DDX_Control(pDX, IDC_STATICG, m_staticGraphBox);
+	DDX_Control(pDX, IDC_STATICI, m_staticGraphBoxRight);
 	DDX_Control(pDX, ID_EXPH, m_buttonExpH);
 	DDX_Control(pDX, ID_EXPT, m_buttonExpT);
+	DDX_Control(pDX, ID_COPY_GRAPH, m_buttonCopyGraph);
+	DDX_Control(pDX, ID_EXPORT_GRAPH, m_buttonExportGraph);
+	DDX_Control(pDX, IDC_COMBO_TIMESPAN, m_comboTimeSpan);
 }
 
 
@@ -125,9 +134,9 @@ BOOL WinMTRDialog::OnInitDialog()
 	}
 	
 #ifndef  _WIN64
-	char caption[] = {"WinMTR (Redux) v1.00 32bit"};
+	char caption[] = {"WinMTR Graph - Network Diagnostic Tool (32-bit)"};
 #else
-	char caption[] = {"WinMTR (Redux) v1.00 64bit"};
+	char caption[] = {"WinMTR Graph - Network Diagnostic Tool (64-bit)"};
 #endif
 	
 	SetTimer(1, WINMTR_DIALOG_TIMER, NULL);
@@ -146,8 +155,8 @@ BOOL WinMTRDialog::OnInitDialog()
 	statusBar.SetPaneInfo(0, statusBar.GetItemID(0),SBPS_STRETCH, NULL);
 	
 	// create Appnor button
-	if(m_buttonAppnor.Create(_T("www.appnor.com"), WS_CHILD|WS_VISIBLE|WS_TABSTOP, CRect(0,0,0,0), &statusBar, 1234)) {
-		m_buttonAppnor.SetURL("http://appnor.com/?utm_source=winmtr&utm_medium=desktop&utm_campaign=software");
+	if(m_buttonAppnor.Create(_T("bananaco.de"), WS_CHILD|WS_VISIBLE|WS_TABSTOP, CRect(0,0,0,0), &statusBar, 1234)) {
+		m_buttonAppnor.SetURL("http://bananaco.de");
 		if(statusBar.AddPane(1234,1)) {
 			statusBar.SetPaneWidth(statusBar.CommandToIndex(1234),100);
 			statusBar.AddPaneControl(m_buttonAppnor,1234,true);
@@ -156,7 +165,32 @@ BOOL WinMTRDialog::OnInitDialog()
 	
 	for(int i = 0; i< MTR_NR_COLS; i++)
 		m_listMTR.InsertColumn(i, MTR_COLS[i], LVCFMT_LEFT, MTR_COL_LENGTH[i] , -1);
-		
+
+	// Create the real-time graph control
+	CRect graphRect;
+	m_listMTR.GetWindowRect(&graphRect);
+	ScreenToClient(&graphRect);
+	graphRect.top = graphRect.bottom + 10;
+	graphRect.bottom = graphRect.top + 250;
+	m_graph.Create(WS_CHILD | WS_VISIBLE, graphRect, this, IDC_GRAPH);
+	m_graph.SetAutoScale(TRUE);
+
+	m_graph.SetWindowPos(&CWnd::wndBottom,
+		0, 0, 0, 0,
+		SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+
+	// Initialize time resolution combo box
+	m_comboTimeSpan.AddString(_T("10 seconds"));
+	m_comboTimeSpan.AddString(_T("30 seconds"));
+	m_comboTimeSpan.AddString(_T("60 seconds"));
+	m_comboTimeSpan.AddString(_T("5 minutes"));
+	m_comboTimeSpan.AddString(_T("30 minutes"));
+	m_comboTimeSpan.AddString(_T("1 hour"));
+	m_comboTimeSpan.AddString(_T("6 hours"));
+	m_comboTimeSpan.AddString(_T("24 hours"));
+	m_comboTimeSpan.SetCurSel(1);  // Default to 30 seconds
+	m_graph.SetTimeResolution(30);  // 30 seconds
+
 	m_comboHost.SetFocus();
 	
 	// We need to resize the dialog to make room for control bars.
@@ -339,17 +373,39 @@ void WinMTRDialog::OnSize(UINT nType, int cx, int cy)
 	m_buttonExpH.SetWindowPos(NULL, rct.Width() - lb.Width()-16, lb.TopLeft().y, lb.Width(), lb.Height() , SWP_NOSIZE | SWP_NOZORDER);
 	m_buttonExpT.GetWindowRect(&lb);
 	ScreenToClient(&lb);
-	m_buttonExpT.SetWindowPos(NULL, rct.Width() - lb.Width()- 103, lb.TopLeft().y, lb.Width(), lb.Height() , SWP_NOSIZE | SWP_NOZORDER);
+	m_buttonExpT.SetWindowPos(NULL, rct.Width() - lb.Width()-103, lb.TopLeft().y, lb.Width(), lb.Height() , SWP_NOSIZE | SWP_NOZORDER);
 	
+	m_staticGraphBoxRight.GetWindowRect(&lb);
+	ScreenToClient(&lb);
+	m_staticGraphBoxRight.SetWindowPos(NULL, rct.Width() - 188 , lb.TopLeft().y, lb.Width(), lb.Height(), SWP_NOSIZE | SWP_NOZORDER);
+
+	m_buttonExportGraph.GetWindowRect(&lb);
+	ScreenToClient(&lb);
+	m_buttonExportGraph.SetWindowPos(NULL, rct.Width() - lb.Width() - 16, lb.TopLeft().y, lb.Width(), lb.Height(), SWP_NOSIZE | SWP_NOZORDER);
+
+	m_buttonCopyGraph.GetWindowRect(&lb);
+	ScreenToClient(&lb);
+	m_buttonCopyGraph.SetWindowPos(NULL, rct.Width()-lb.Width()-103, lb.TopLeft().y, lb.Width(), lb.Height() , SWP_NOSIZE | SWP_NOZORDER);
+
 	m_listMTR.GetWindowRect(&lb);
 	ScreenToClient(&lb);
-	m_listMTR.SetWindowPos(NULL, lb.TopLeft().x, lb.TopLeft().y, rct.Width() - 17, rct.Height() - lb.top - 25, SWP_NOMOVE | SWP_NOZORDER);
-	
+	// Resize list to take half the vertical space
+	int availableHeight = rct.Height() - lb.top - 25;
+	int listHeight = availableHeight / 2 - 5;
+	m_listMTR.SetWindowPos(NULL, lb.TopLeft().x, lb.TopLeft().y, rct.Width() - 17, listHeight, SWP_NOMOVE | SWP_NOZORDER);
+
+	// Position and resize graph below the list
+	int graphTop = lb.top + listHeight + 10;
+	int graphHeight = rct.Height() - graphTop - 25;
+	m_graph.SetWindowPos(NULL, lb.TopLeft().x, graphTop, rct.Width() - 17, graphHeight, SWP_NOZORDER);
+
 	RepositionBars(AFX_IDW_CONTROLBAR_FIRST, AFX_IDW_CONTROLBAR_LAST,
 				   0, reposQuery, rct);
 				   
 	RepositionBars(AFX_IDW_CONTROLBAR_FIRST, AFX_IDW_CONTROLBAR_LAST, 0);
-	
+	// Force redraw
+	Invalidate();
+	UpdateWindow();
 }
 
 
@@ -391,6 +447,29 @@ HCURSOR WinMTRDialog::OnQueryDragIcon()
 
 
 //*****************************************************************************
+// WinMTRDialog::OnClickList
+//
+// Handle single click on list to filter graph to selected hop
+//*****************************************************************************
+void WinMTRDialog::OnClickList(NMHDR* pNMHDR, LRESULT* pResult)
+{
+	*pResult = 0;
+
+	if(IsWindow(m_graph.m_hWnd)) {
+		POSITION pos = m_listMTR.GetFirstSelectedItemPosition();
+		if(pos != NULL) {
+			int nItem = m_listMTR.GetNextSelectedItem(pos);
+			// Filter graph to show only this hop
+			m_graph.SetSelectedHop(nItem);
+		} else {
+			// No selection - show all hops
+			m_graph.SetSelectedHop(-1);
+		}
+	}
+}
+
+
+//*****************************************************************************
 // WinMTRDialog::OnDblclkList
 //
 //*****************************************************************************
@@ -398,7 +477,7 @@ void WinMTRDialog::OnDblclkList(NMHDR* /*pNMHDR*/, LRESULT* pResult)
 {
 	*pResult=0;
 	if(state==TRACING || state==IDLE || state==STOPPING) {
-	
+
 		POSITION pos = m_listMTR.GetFirstSelectedItemPosition();
 		if(pos!=NULL) {
 			int nItem = m_listMTR.GetNextSelectedItem(pos);
@@ -507,7 +586,13 @@ void WinMTRDialog::OnRestart()
 			return ;
 		}
 		m_listMTR.DeleteAllItems();
-		
+
+		// Clear the graph when starting a new trace
+		if(IsWindow(m_graph.m_hWnd)) {
+			m_graph.ClearData();
+			m_graph.SetSelectedHop(-1);  // Reset to show all hops
+		}
+
 		HKEY hKey; DWORD tmp_dword;
 		if(RegCreateKeyEx(HKEY_CURRENT_USER,"Software\\WinMTR\\Config",0,NULL,0,KEY_ALL_ACCESS,NULL,&hKey,NULL)==ERROR_SUCCESS) {
 			tmp_dword=m_checkIPv6.GetCheck();
@@ -764,43 +849,140 @@ void WinMTRDialog::OnEXPH()
 					this);
 					
 	if(dlg.DoModal() == IDOK) {
-	
-		char buf[255], t_buf[1000], f_buf[255*100];
-		
+
+		// Allocate large buffers on the heap to avoid stack overflow
+		char* buf = new char[255];
+		char* t_buf = new char[1000];
+		char* f_buf = new char[255 * 100];
+
 		int nh = wmtrnet->GetMax();
-		
+
 		strcpy(f_buf, "<html><head><title>WinMTR Statistics</title></head><body bgcolor=\"white\">\r\n");
 		sprintf(t_buf, "<center><h2>WinMTR statistics</h2></center>\r\n");
 		strcat(f_buf, t_buf);
-		
+
 		sprintf(t_buf, "<p align=\"center\"> <table border=\"1\" align=\"center\">\r\n");
 		strcat(f_buf, t_buf);
-		
+
 		sprintf(t_buf, "<tr><td>Host</td> <td>%%</td> <td>Sent</td> <td>Recv</td> <td>Best</td> <td>Avrg</td> <td>Wrst</td> <td>Last</td></tr>\r\n");
 		strcat(f_buf, t_buf);
-		
+
 		for(int i=0; i <nh ; i++) {
 			wmtrnet->GetName(i, buf);
 			if(strcmp(buf,"")==0) strcpy(buf,"No response from host");
-			
+
 			sprintf(t_buf, "<tr><td>%s</td> <td>%4d</td> <td>%4d</td> <td>%4d</td> <td>%4d</td> <td>%4d</td> <td>%4d</td> <td>%4d</td></tr>\r\n" ,
 					buf, wmtrnet->GetPercent(i),
 					wmtrnet->GetXmit(i), wmtrnet->GetReturned(i), wmtrnet->GetBest(i),
 					wmtrnet->GetAvg(i), wmtrnet->GetWorst(i), wmtrnet->GetLast(i));
 			strcat(f_buf, t_buf);
 		}
-		
+
 		sprintf(t_buf, "</table></body></html>\r\n");
 		strcat(f_buf, t_buf);
-		
+
 		FILE* fp = fopen(dlg.GetPathName(), "wt");
 		if(fp != NULL) {
 			fprintf(fp, "%s", f_buf);
 			fclose(fp);
 		}
+
+		// Free heap memory
+		delete[] buf;
+		delete[] t_buf;
+		delete[] f_buf;
 	}
 	
 	
+}
+
+
+//*****************************************************************************
+// WinMTRDialog::OnCopyGraph
+//
+// Copy the graph to clipboard as an image
+//*****************************************************************************
+void WinMTRDialog::OnCopyGraph()
+{
+	if (IsWindow(m_graph.m_hWnd)) {
+		if (m_graph.CopyToClipboard()) {
+			// Do nothing, success
+		} else {
+			AfxMessageBox(_T("Failed to copy graph to clipboard."), MB_OK | MB_ICONERROR);
+		}
+	}
+}
+
+//*****************************************************************************
+// WinMTRDialog::OnExportGraph
+//
+// Export the graph to a PNG file
+//*****************************************************************************
+void WinMTRDialog::OnExportGraph()
+{
+	TCHAR BASED_CODE szFilter[] = _T("PNG Files (*.png)|*.png|All Files (*.*)|*.*||");
+
+	CFileDialog dlg(FALSE,
+					_T("PNG"),
+					_T("graph.png"),
+					OFN_HIDEREADONLY | OFN_EXPLORER,
+					szFilter,
+					this);
+
+	if(dlg.DoModal() == IDOK) {
+		if(IsWindow(m_graph.m_hWnd)) {
+			if(m_graph.ExportToFile(dlg.GetPathName())) {
+				// 
+			} else {
+				AfxMessageBox("Failed to export graph.");
+			}
+		}
+	}
+}
+
+
+//*****************************************************************************
+// WinMTRDialog::OnTimeSpanChange
+//
+// Handle time resolution selection change
+//*****************************************************************************
+void WinMTRDialog::OnTimeSpanChange()
+{
+	if(IsWindow(m_graph.m_hWnd)) {
+		int selection = m_comboTimeSpan.GetCurSel();
+		int timeResolution = 0;
+
+		switch(selection) {
+		case 0:  // 10 seconds
+			timeResolution = 10;
+			break;
+		case 1:  // 30 seconds
+			timeResolution = 30;
+			break;
+		case 2:  // 60 seconds
+			timeResolution = 60;
+			break;
+		case 3:  // 5 minutes
+			timeResolution = 300;
+			break;
+		case 4:  // 30 minutes
+			timeResolution = 1800;
+			break;
+		case 5:  // 1 hour
+			timeResolution = 3600;
+			break;
+		case 6:  // 6 hours
+			timeResolution = 21600;
+			break;
+		case 7:  // 24 hours
+			timeResolution = 86400;
+			break;
+		default:
+			timeResolution = 30;  // Default to 30 seconds
+		}
+
+		m_graph.SetTimeResolution(timeResolution);
+	}
 }
 
 
@@ -824,44 +1006,70 @@ int WinMTRDialog::DisplayRedraw()
 	char buf[255], nr_crt[255];
 	int nh = wmtrnet->GetMax();
 	while(m_listMTR.GetItemCount() > nh) m_listMTR.DeleteItem(m_listMTR.GetItemCount() - 1);
-	
+
+	// Collect RTT data and hostnames for graph
+	int rttData[MAX_GRAPH_HOPS];
+	char* hostnames[MAX_GRAPH_HOPS];
+	char hostnameBuffer[MAX_GRAPH_HOPS][255];
+
+	for(int i = 0; i < MAX_GRAPH_HOPS; i++) {
+		rttData[i] = -1;  // Initialize with no data
+		hostnameBuffer[i][0] = '\0';
+		hostnames[i] = hostnameBuffer[i];
+	}
+
 	for(int i=0; i <nh ; ++i) {
-	
+
 		wmtrnet->GetName(i, buf);
 		if(!*buf) strcpy(buf,"No response from host");
-		
+
 		sprintf(nr_crt, "%d", i+1);
 		if(m_listMTR.GetItemCount() <= i)
 			m_listMTR.InsertItem(i, buf);
 		else
 			m_listMTR.SetItem(i, 0, LVIF_TEXT, buf, 0, 0, 0, 0);
-			
+
 		m_listMTR.SetItem(i, 1, LVIF_TEXT, nr_crt, 0, 0, 0, 0);
-		
+
 		sprintf(buf, "%d", wmtrnet->GetPercent(i));
 		m_listMTR.SetItem(i, 2, LVIF_TEXT, buf, 0, 0, 0, 0);
-		
+
 		sprintf(buf, "%d", wmtrnet->GetXmit(i));
 		m_listMTR.SetItem(i, 3, LVIF_TEXT, buf, 0, 0, 0, 0);
-		
+
 		sprintf(buf, "%d", wmtrnet->GetReturned(i));
 		m_listMTR.SetItem(i, 4, LVIF_TEXT, buf, 0, 0, 0, 0);
-		
+
 		sprintf(buf, "%d", wmtrnet->GetBest(i));
 		m_listMTR.SetItem(i, 5, LVIF_TEXT, buf, 0, 0, 0, 0);
-		
+
 		sprintf(buf, "%d", wmtrnet->GetAvg(i));
 		m_listMTR.SetItem(i, 6, LVIF_TEXT, buf, 0, 0, 0, 0);
-		
+
 		sprintf(buf, "%d", wmtrnet->GetWorst(i));
 		m_listMTR.SetItem(i, 7, LVIF_TEXT, buf, 0, 0, 0, 0);
-		
-		sprintf(buf, "%d", wmtrnet->GetLast(i));
+
+		int lastRTT = wmtrnet->GetLast(i);
+		sprintf(buf, "%d", lastRTT);
 		m_listMTR.SetItem(i, 8, LVIF_TEXT, buf, 0, 0, 0, 0);
-		
-		
+
+		// Store RTT and hostname for graph (use Last value for real-time display)
+		if(i < MAX_GRAPH_HOPS) {
+			rttData[i] = lastRTT;
+			// Only pass hostname if packet loss is not 100%
+			int packetLoss = wmtrnet->GetPercent(i);
+			if(packetLoss < 100) {
+				wmtrnet->GetName(i, hostnameBuffer[i]);
+			}
+			// Otherwise hostnameBuffer[i] stays empty (already initialized above)
+		}
 	}
-	
+
+	// Update the graph with current RTT data and hostnames
+	if(IsWindow(m_graph.m_hWnd) && state == TRACING) {
+		m_graph.AddSample(rttData, (const char* const*)hostnames, nh);
+	}
+
 	return 0;
 }
 

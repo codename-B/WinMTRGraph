@@ -11,3 +11,9 @@
 *.lai
 *.la
 *.a
+.*/*
+
+# Output folder(s)
+/Debug_x64
+/Debug
+WinMTRGraph.vcxproj.user
