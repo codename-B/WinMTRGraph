@@ -154,12 +154,12 @@ BOOL WinMTRDialog::OnInitDialog()
 	statusBar.SetIndicators(sbi,1);
 	statusBar.SetPaneInfo(0, statusBar.GetItemID(0),SBPS_STRETCH, NULL);
 	
-	// create Appnor button
-	if(m_buttonAppnor.Create(_T("bananaco.de"), WS_CHILD|WS_VISIBLE|WS_TABSTOP, CRect(0,0,0,0), &statusBar, 1234)) {
-		m_buttonAppnor.SetURL("http://bananaco.de");
-		if(statusBar.AddPane(1234,1)) {
-			statusBar.SetPaneWidth(statusBar.CommandToIndex(1234),100);
-			statusBar.AddPaneControl(m_buttonAppnor,1234,true);
+	// create linkback button
+	if(m_buttonLink.Create(_T("bananaco.de"), WS_CHILD|WS_VISIBLE|WS_TABSTOP, CRect(0,0,0,0), &statusBar, 1234)) {
+		m_buttonLink.SetURL("http://bananaco.de");
+		if (statusBar.AddPane(1234, 1)) {
+			statusBar.SetPaneWidth(statusBar.CommandToIndex(1234), 100);
+			statusBar.AddPaneControl(m_buttonLink, 1234, true);
 		}
 	}
 	

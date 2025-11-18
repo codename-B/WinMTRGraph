@@ -63,7 +63,7 @@ public:
 	CComboBox m_comboHost;
 	CButton m_checkIPv6;
 	CListCtrl m_listMTR;
-	CMFCLinkCtrl m_buttonAppnor;
+	CMFCLinkCtrl m_buttonLink;
 	
 	CStatic	m_staticS;
 	CStatic	m_staticJ;

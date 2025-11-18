@@ -287,6 +287,7 @@ BEGIN
     IDS_STRING_SB_NAME      "WinMTR Graph v1.1 GPLv2"
     IDS_STRING_SB_PING      "0000000"
     IDS_STRING_CLEAR_HISTORY "Clear History"
+    1234 "bananaco.de"
 END
 
 #endif    // English (United States) resources
