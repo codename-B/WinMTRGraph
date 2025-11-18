@@ -12,7 +12,11 @@
 *.lai
 *.la
 *.a
-.*/*
+
+# Ignore dotfiles/directories except .github
+.*
+!.gitignore
+!.github/
 
 # Output folder(s)
 /Debug_x64
