@@ -28,13 +28,20 @@ jobs:
     - name: Build solution
       run: msbuild WinMTRGraph.sln /p:Configuration=${{ matrix.configuration }} /p:Platform=${{ matrix.platform }} /m
 
-    - name: Upload artifacts
+    - name: Upload Win32 artifacts
+      if: matrix.platform == 'Win32'
       uses: actions/upload-artifact@v4
       with:
-        name: WinMTRGraph-${{ matrix.platform }}
-        path: |
-          Release_x32/WinMTRGraph.exe
-          Release_x64/WinMTRGraph.exe
+        name: WinMTRGraph-Win32
+        path: Release_x32/WinMTRGraph.exe
+        if-no-files-found: error
+
+    - name: Upload x64 artifacts
+      if: matrix.platform == 'x64'
+      uses: actions/upload-artifact@v4
+      with:
+        name: WinMTRGraph-x64
+        path: Release_x64/WinMTRGraph.exe
         if-no-files-found: error
 
   release:
@@ -57,8 +64,8 @@ jobs:
 
     - name: Create release archives
       run: |
-        Compress-Archive -Path ./release/win32/Release_x32/WinMTRGraph.exe -DestinationPath WinMTRGraph-${{ github.ref_name }}-x86.zip
-        Compress-Archive -Path ./release/x64/Release_x64/WinMTRGraph.exe -DestinationPath WinMTRGraph-${{ github.ref_name }}-x64.zip
+        Compress-Archive -Path ./release/win32/WinMTRGraph.exe -DestinationPath WinMTRGraph-${{ github.ref_name }}-x86.zip
+        Compress-Archive -Path ./release/x64/WinMTRGraph.exe -DestinationPath WinMTRGraph-${{ github.ref_name }}-x64.zip
 
     - name: Create GitHub Release
       uses: softprops/action-gh-release@v1
