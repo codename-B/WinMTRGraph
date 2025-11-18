@@ -13,7 +13,7 @@ jobs:
     strategy:
       matrix:
         configuration: [Release]
-        platform: [Win32, x64]
+        platform: [x86, x64]
 
     steps:
     - name: Checkout code
@@ -28,11 +28,11 @@ jobs:
     - name: Build solution
       run: msbuild WinMTRGraph.sln /p:Configuration=${{ matrix.configuration }} /p:Platform=${{ matrix.platform }} /m
 
-    - name: Upload Win32 artifacts
-      if: matrix.platform == 'Win32'
+    - name: Upload x86 artifacts
+      if: matrix.platform == 'x86'
       uses: actions/upload-artifact@v4
       with:
-        name: WinMTRGraph-Win32
+        name: WinMTRGraph-x86
         path: Release_x32/WinMTRGraph.exe
         if-no-files-found: error
 
@@ -50,11 +50,11 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/')
 
     steps:
-    - name: Download Win32 artifact
+    - name: Download x86 artifact
       uses: actions/download-artifact@v4
       with:
-        name: WinMTRGraph-Win32
-        path: ./release/win32
+        name: WinMTRGraph-x86
+        path: ./release/x86
 
     - name: Download x64 artifact
       uses: actions/download-artifact@v4
@@ -64,7 +64,7 @@ jobs:
 
     - name: Create release archives
       run: |
-        Compress-Archive -Path ./release/win32/WinMTRGraph.exe -DestinationPath WinMTRGraph-${{ github.ref_name }}-x86.zip
+        Compress-Archive -Path ./release/x86/WinMTRGraph.exe -DestinationPath WinMTRGraph-${{ github.ref_name }}-x86.zip
         Compress-Archive -Path ./release/x64/WinMTRGraph.exe -DestinationPath WinMTRGraph-${{ github.ref_name }}-x64.zip
 
     - name: Create GitHub Release
